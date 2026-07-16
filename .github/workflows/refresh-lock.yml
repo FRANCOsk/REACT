@@ -1,0 +1,51 @@
+name: Refresh dependencies
+
+on:
+  push:
+    branches:
+      - chore/modernize-react-dashboard
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out working branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/modernize-react-dashboard
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.22.3"
+          cache: npm
+
+      - name: Refresh dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Validate clean installation
+        run: npm ci --no-audit --no-fund
+
+      - name: Build application
+        run: npm run build
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Commit refreshed lock file
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "The dependency lock is already current."
+            exit 0
+          fi
+          git commit -m "build: refresh npm dependency lock"
+          git push
