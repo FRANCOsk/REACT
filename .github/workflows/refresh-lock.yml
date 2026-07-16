@@ -29,18 +29,42 @@ jobs:
           cache: npm
 
       - name: Refresh dependency lock
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+        id: refresh
+        shell: bash
+        run: |
+          set +e
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund > dependency-refresh.log 2>&1
+          status=$?
+          cat dependency-refresh.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload dependency diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-dependency-refresh-log
+          path: dependency-refresh.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce dependency refresh result
+        if: steps.refresh.outputs.status != '0'
+        run: exit 1
 
       - name: Validate clean installation
+        if: steps.refresh.outputs.status == '0'
         run: npm ci --no-audit --no-fund
 
       - name: Build application
+        if: steps.refresh.outputs.status == '0'
         run: npm run build
 
       - name: Audit dependencies
+        if: steps.refresh.outputs.status == '0'
         run: npm audit --audit-level=high
 
       - name: Commit refreshed lock file
+        if: steps.refresh.outputs.status == '0'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
