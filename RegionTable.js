@@ -1,38 +1,58 @@
-import PropTypes from 'prop-types';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import { DataGrid } from '@material-ui/data-grid';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
 
-// tu je potrebne doplnit stlpce regionalnej tabulky
+const numberFormatter = new Intl.NumberFormat('sk-SK');
+
 const columns = [
-    { field: 'id', headerName: 'ID', width: 100 },
-    { field: 'name', headerName: 'MENO', width: 250 },
-    { field: 'totalApp', headerName: 'TOTAL APP', width: 180 },
+  { field: 'category', headerName: 'Kategória', minWidth: 240, flex: 1.4 },
+  {
+    field: 'volume',
+    headerName: 'Počet',
+    type: 'number',
+    minWidth: 150,
+    flex: 0.7,
+    valueFormatter: (value) => numberFormatter.format(value)
+  },
+  {
+    field: 'share',
+    headerName: 'Podiel',
+    type: 'number',
+    minWidth: 130,
+    flex: 0.6,
+    valueFormatter: (value) => `${Number(value).toFixed(1)} %`
+  }
 ];
 
-export default function RegionTable( props ) {
-    const { onClose, open, regionData } = props;
-
-    const handleClose = () => {
-        onClose();
-    }
-
-    return (
-        <Dialog onClose={handleClose} className='RegionTable' open={open} style={{ width: 700 }}>
-            <DialogTitle id="regionTable">Region Table</DialogTitle>
-            <div style={{ height: 400, width: 600 }}>
-                <DataGrid
-                    rows={regionData}
-                    columns={columns}
-                    pageSize={5}
-                />
-            </div>
-        </Dialog>
-    );
+export default function RegionTable({ selectedRow, onClose }) {
+  return (
+    <Dialog open={Boolean(selectedRow)} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" gap={2}>
+          <Box>
+            <Typography variant="h6" fontWeight={750}>
+              {selectedRow?.name ?? 'Detail produkcie'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedRow ? `${selectedRow.region} · ${selectedRow.branch}` : ''}
+            </Typography>
+          </Box>
+          <IconButton aria-label="Zatvoriť detail" onClick={onClose} edge="end">
+            <CloseRoundedIcon />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Box height={360}>
+          <DataGrid
+            rows={selectedRow?.details ?? []}
+            columns={columns}
+            hideFooter
+            disableRowSelectionOnClick
+            sx={{ border: 0 }}
+          />
+        </Box>
+      </DialogContent>
+    </Dialog>
+  );
 }
-
-RegionTable.propTypes = {
-    onClose: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired,
-    regionData: PropTypes.array.isRequired,
-};
