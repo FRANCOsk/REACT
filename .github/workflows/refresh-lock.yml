@@ -51,6 +51,16 @@ jobs:
         if: steps.refresh.outputs.status != '0'
         run: exit 1
 
+      - name: Commit refreshed lock file
+        if: steps.refresh.outputs.status == '0'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git diff --cached --quiet || git commit -m "build: rebuild npm dependency lock"
+          git push
+
       - name: Validate clean installation
         if: steps.refresh.outputs.status == '0'
         run: npm ci --no-audit --no-fund
@@ -62,13 +72,3 @@ jobs:
       - name: Audit dependencies
         if: steps.refresh.outputs.status == '0'
         run: npm audit --audit-level=high
-
-      - name: Commit refreshed lock file
-        if: steps.refresh.outputs.status == '0'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "build: rebuild npm dependency lock"
-          git push
