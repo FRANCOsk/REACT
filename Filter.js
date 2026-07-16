@@ -1,134 +1,100 @@
-import React from 'react';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material';
 
-// popis komponentu Grid je na stranke https://material-ui.com/components/grid/
-// vsetky ostatne komponenty z material-ui kniznice
+function uniqueValues(rows, key) {
+  return [...new Set(rows.filter((row) => row.id !== 'SPOL').map((row) => row[key]))].sort();
+}
 
-// je pouzity TextField na vyber datumu, pre viac funkcionality je mozne vymenit za @material-ui/pickers
+export default function Filter({ value, onChange, rows }) {
+  const update = (field) => (event) => {
+    onChange({ ...value, [field]: event.target.value });
+  };
 
-const colors = [
-    { value: 'biela' , text: 'Biela'  },
-    { value: 'cierna', text: 'Čierna' },
-    { value: 'zlta'  , text: 'Žltá'   },
-]
+  const reset = () => {
+    onChange({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-12-31',
+      region: 'all',
+      branch: 'all',
+      status: 'all'
+    });
+  };
 
-export default function Filter() {
-    const [ selectValue, setSelectValue ] = React.useState( 'biela' );
+  return (
+    <Paper className="filter-panel" variant="outlined">
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" gap={2} mb={2}>
+        <Box>
+          <Typography variant="h6" fontWeight={700}>
+            Filter reportu
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Zúžte výsledky podľa obdobia, regiónu, pobočky alebo stavu plnenia.
+          </Typography>
+        </Box>
+        <Button startIcon={<RestartAltRoundedIcon />} onClick={reset}>
+          Obnoviť filtre
+        </Button>
+      </Stack>
 
-    const handleChange = (event) => {
-        setSelectValue( event.target.value );
-    };
-
-    return (
-        <Grid container className="Filter" spacing={2}>
-            <Grid item xs={1}>
-                <TextField
-                    id="date1"
-                    type="date"
-                    defaultValue="2020-01-01"
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                />
-            </Grid>
-            <Grid item xs={1}>
-                <TextField
-                    id="date2"
-                    type="date"
-                    defaultValue="2020-01-01"
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                />
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={6}/>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-            <Grid item xs={1}>
-                <Select
-                    labelId="selectColor"
-                    id="selectColor"
-                    value={selectValue}
-                    onChange={handleChange}
-                >
-                    {colors.map( ( color ) => ( 
-                        <MenuItem value={color.value}>{color.text}</MenuItem>
-                    ) ) }
-                </Select>
-            </Grid>
-        </Grid>
-    );
+      <Box className="filter-grid">
+        <TextField
+          label="Od"
+          type="date"
+          value={value.dateFrom}
+          onChange={update('dateFrom')}
+          slotProps={{ inputLabel: { shrink: true } }}
+          fullWidth
+        />
+        <TextField
+          label="Do"
+          type="date"
+          value={value.dateTo}
+          onChange={update('dateTo')}
+          slotProps={{ inputLabel: { shrink: true } }}
+          fullWidth
+        />
+        <FormControl fullWidth>
+          <InputLabel id="region-label">Región</InputLabel>
+          <Select labelId="region-label" value={value.region} label="Región" onChange={update('region')}>
+            <MenuItem value="all">Všetky regióny</MenuItem>
+            {uniqueValues(rows, 'region').map((region) => (
+              <MenuItem key={region} value={region}>
+                {region}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel id="branch-label">Pobočka</InputLabel>
+          <Select labelId="branch-label" value={value.branch} label="Pobočka" onChange={update('branch')}>
+            <MenuItem value="all">Všetky pobočky</MenuItem>
+            {uniqueValues(rows, 'branch').map((branch) => (
+              <MenuItem key={branch} value={branch}>
+                {branch}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel id="status-label">Plnenie</InputLabel>
+          <Select labelId="status-label" value={value.status} label="Plnenie" onChange={update('status')}>
+            <MenuItem value="all">Všetky stavy</MenuItem>
+            <MenuItem value="Nad plánom">Nad plánom</MenuItem>
+            <MenuItem value="Pod plánom">Pod plánom</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+    </Paper>
+  );
 }
