@@ -1,64 +1,93 @@
-import React from 'react';
-import { DataGrid } from '@material-ui/data-grid';
+import { useMemo, useState } from 'react';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import { Box, Chip, Paper, Stack, Typography } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
 import RegionTable from './RegionTable';
 
-// tu je potrebne doplnit stlpce hlavnej tabulky
+const numberFormatter = new Intl.NumberFormat('sk-SK');
 
-const columns = [
-    { field: 'id', headerName: 'ID', width: 100 },
-    { field: 'name', headerName: 'MENO', width: 250 },
-    { field: 'funkcia', headerName: 'FUNKCIA', width: 250 },
-    { field: 'region', headerName: 'REGION', width: 250 },
-    { field: 'pobocka', headerName: 'POBOCKA', width: 250 },
-    { field: 'totalApp', headerName: 'TOTAL APP', width: 250 },
-    { field: 'sucet', headerName: 'SUCET', width: 250},
+export default function MainTable({ rows }) {
+  const [selectedRow, setSelectedRow] = useState(null);
 
-];
+  const columns = useMemo(
+    () => [
+      { field: 'id', headerName: 'Kód', width: 90 },
+      { field: 'name', headerName: 'Organizačná jednotka', minWidth: 230, flex: 1.4 },
+      { field: 'role', headerName: 'Typ tímu', minWidth: 150, flex: 0.8 },
+      { field: 'region', headerName: 'Región', minWidth: 130, flex: 0.7 },
+      { field: 'branch', headerName: 'Pobočka', minWidth: 180, flex: 1 },
+      {
+        field: 'applications',
+        headerName: 'Produkcia',
+        type: 'number',
+        minWidth: 140,
+        flex: 0.75,
+        valueFormatter: (value) => numberFormatter.format(value)
+      },
+      {
+        field: 'target',
+        headerName: 'Cieľ',
+        type: 'number',
+        minWidth: 130,
+        flex: 0.7,
+        valueFormatter: (value) => numberFormatter.format(value)
+      },
+      {
+        field: 'status',
+        headerName: 'Stav',
+        minWidth: 140,
+        flex: 0.7,
+        renderCell: ({ value }) => (
+          <Chip
+            label={value}
+            size="small"
+            color={value === 'Nad plánom' ? 'success' : 'warning'}
+            variant="outlined"
+          />
+        )
+      }
+    ],
+    []
+  );
 
-// tu je potrebne doplnit stlpce regionalnej tabulky
-function createRegionData( id, name, funkcia, region, pobocka, totalApp, sucet ) {
+  return (
+    <Paper className="table-panel" variant="outlined">
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={2} mb={2}>
+        <Box>
+          <Typography variant="h6" fontWeight={700}>
+            Výsledky podľa organizačnej jednotky
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Kliknutím na riadok otvoríte detailnú skladbu produkcie.
+          </Typography>
+        </Box>
+        <Stack direction="row" alignItems="center" gap={1} color="text.secondary">
+          <OpenInNewRoundedIcon fontSize="small" />
+          <Typography variant="body2">{rows.length} záznamov</Typography>
+        </Stack>
+      </Stack>
 
-    
+      <Box className="data-grid-wrapper">
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          onRowClick={({ row }) => setSelectedRow(row)}
+          pageSizeOptions={[5, 10]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 5, page: 0 }
+            }
+          }}
+          disableRowSelectionOnClick
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-row': { cursor: 'pointer' },
+            '& .MuiDataGrid-columnHeaders': { borderRadius: 2 }
+          }}
+        />
+      </Box>
 
-    return { id, name, funkcia, region, pobocka, totalApp, sucet };
-}
-
-// samotne data, nahradit potom selectom z DB (napr. cez redux), alebo inym mechanizmom
-const mainData = [
-    {
-        id: 'SPOL',
-        name: 'Celá Spoločnosť',
-        regionData: [
-            createRegionData( 'B', 'Region Bratislava', 55366 ),
-            createRegionData( 'JV', 'Region Juhovychod', 641696 ),
-            createRegionData( 'JZ', 'Region Juhozapad', 36546 ),
-        ]
-    },
-];
-
-export default function MainTable() {
-    const [ open, setOpen ] = React.useState( false );
-    const [ regionData, setRegionData ] = React.useState( [] );
-
-    const handleClose = () => {
-        setOpen( false );
-    }
-
-    const handleClick = (event) => {
-        setRegionData( event.data.regionData );
-        setOpen( true );
-    }
-
-    return (
-        <div className='MainTable' style={{ height: 400, width: '100%' }}>
-            <DataGrid
-                rows={mainData}
-                 
-                columns={columns}
-                pageSize={5}
-                onRowClick={handleClick}
-            />
-            <RegionTable open={open} onClose={handleClose} regionData={regionData}/>
-        </div>
-    );
+      <RegionTable selectedRow={selectedRow} onClose={() => setSelectedRow(null)} />
+    </Paper>
+  );
 }
