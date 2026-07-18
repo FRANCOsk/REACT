@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import RegionTable from './RegionTable';
+import RegionTable from './RegionTable.jsx';
 
 const numberFormatter = new Intl.NumberFormat('sk-SK');
 

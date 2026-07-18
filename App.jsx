@@ -13,9 +13,9 @@ import {
   Typography,
   createTheme
 } from '@mui/material';
-import Filter from './Filter';
-import MainTable from './MainTable';
-import { productionRows } from './data';
+import Filter from './Filter.jsx';
+import MainTable from './MainTable.jsx';
+import { productionRows } from './data.js';
 import './App.css';
 
 const theme = createTheme({
